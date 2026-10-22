@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Keyword Frequency Counter</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            padding: 2rem;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 1100px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        header h1 {
+            font-size: 2.2rem;
+            color: var(--accent);
+        }
+
+        header p {
+            color: var(--text-muted);
+            margin-top: 0.5rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .card h2 {
+            font-size: 1.25rem;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 0.5rem;
+        }
+
+        textarea {
+            width: 100%;
+            height: 180px;
+            background-color: var(--bg-color);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text-main);
+            padding: 0.75rem;
+            resize: vertical;
+        }
+
+        input[type="text"], input[type="file"], select {
+            width: 100%;
+            padding: 0.6rem;
+            background-color: var(--bg-color);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text-main);
+        }
+
+        .btn {
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.2rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+
+        .btn:hover {
+            background-color: var(--accent-hover);
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--border);
+            color: var(--text-main);
+        }
+
+        .stats-container {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .stat-box {
+            flex: 1;
+            background-color: var(--bg-color);
+            padding: 1rem;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .stat-box .number {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--accent);
+        }
+
+        .stat-box .label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .chart-row {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .chart-label {
+            width: 120px;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .bar-container {
+            flex-grow: 1;
+            background-color: var(--bg-color);
+            border-radius: 4px;
+            height: 20px;
+            overflow: hidden;
+        }
+
+        .bar {
+            height: 100%;
+            background-color: var(--accent);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .chart-value {
+            width: 40px;
+            text-align: right;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .row-group {
+            display: flex;
+            gap: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Keyword Frequency Counter</h1>
+        <p>Hash Table Analysis & Data Extraction Tool</p>
+    </header>
+
+    <div class="stats-container">
+        <div class="stat-box">
+            <div class="number" id="stat-total-words">0</div>
+            <div class="label">Total Words Processed</div>
+        </div>
+        <div class="stat-box">
+            <div class="number" id="stat-unique-keywords">0</div>
+            <div class="label">Unique Keywords Tracked</div>
+        </div>
+    </div>
+
+    <div class="grid">
+        <!-- Input Section -->
+        <div class="card">
+            <h2>Input Source</h2>
+            <textarea id="text-input" placeholder="Paste your document or text corpus here..."></textarea>
+            
+            <div class="row-group">
+                <input type="file" id="file-input" accept=".txt">
+                <button class="btn" onclick="processText()">Analyze Text</button>
+            </div>
+        </div>
+
+        <!-- Search & Tools Section -->
+        <div class="card">
+            <h2>Keyword Lookup</h2>
+            <div class="row-group">
+                <input type="text" id="search-query" placeholder="Search specific keyword...">
+                <button class="btn btn-secondary" onclick="searchKeyword()">Search</button>
+            </div>
+            <p id="search-result" style="color: var(--accent); font-weight: bold;"></p>
+
+            <h2 style="margin-top: 1rem;">Export & Settings</h2>
+            <div class="row-group">
+                <button class="btn btn-secondary" style="flex: 1;" onclick="exportCSV()">Export CSV</button>
+                <button class="btn btn-secondary" style="flex: 1;" onclick="resetData()">Clear Data</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Analytics Output Section -->
+    <div class="card">
+        <h2>Top Frequent Keywords</h2>
+        <div id="chart-container">
+            <p style="color: var(--text-muted);">No data processed yet.</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Stop words matching the C++ backend list
+    const stopWords = new Set([
+        "the", "is", "at", "which", "and", "a", "an", "in", "to", "of", 
+        "for", "on", "with", "as", "by", "that", "this", "it", "from", "or"
+    ]);
+
+    let wordMap = new Map();
+    let totalWordCount = 0;
+
+    // File input loader
+    document.getElementById('file-input').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('text-input').value = e.target.result;
+        };
+        reader.readAsText(file);
+    });
+
+    function cleanWord(word) {
+        return word.toLowerCase().replace(/[^a-z0-9]/g, '');
+    }
+
+    function processText() {
+        const text = document.getElementById('text-input').value;
+        if (!text.trim()) return;
+
+        wordMap.clear();
+        totalWordCount = 0;
+
+        const tokens = text.split(/\s+/);
+        tokens.forEach(token => {
+            const cleaned = cleanWord(token);
+            if (cleaned.length > 0) {
+                totalWordCount++;
+                if (!stopWords.has(cleaned)) {
+                    wordMap.set(cleaned, (wordMap.get(cleaned) || 0) + 1);
+                }
+            }
+        });
+
+        updateDashboard();
+    }
+
+    function updateDashboard() {
+        document.getElementById('stat-total-words').innerText = totalWordCount;
+        document.getElementById('stat-unique-keywords').innerText = wordMap.size;
+
+        // Sort entries by frequency (Top-K extraction)
+        const sorted = Array.from(wordMap.entries()).sort((a, b) => b[1] - a[1]);
+        const topK = sorted.slice(0, 10);
+
+        const chartContainer = document.getElementById('chart-container');
+        if (topK.length === 0) {
+            chartContainer.innerHTML = '<p style="color: var(--text-muted);">No valid keywords found.</p>';
+            return;
+        }
+
+        const maxFreq = topK[0][1];
+        chartContainer.innerHTML = '';
+
+        topK.forEach(([word, freq]) => {
+            const percentage = (freq / maxFreq) * 100;
+            const row = document.createElement('div');
+            row.className = 'chart-row';
+            row.innerHTML = `
+                <span class="chart-label">${word}</span>
+                <div class="bar-container">
+                    <div class="bar" style="width: ${percentage}%"></div>
+                </div>
+                <span class="chart-value">${freq}</span>
+            `;
+            chartContainer.appendChild(row);
+        });
+    }
+
+    function searchKeyword() {
+        const query = cleanWord(document.getElementById('search-query').value);
+        const resultElement = document.getElementById('search-result');
+
+        if (!query) {
+            resultElement.innerText = '';
+            return;
+        }
+
+        const count = wordMap.get(query) || 0;
+        resultElement.innerText = `'${query}' appears ${count} time(s).`;
+    }
+
+    function exportCSV() {
+        if (wordMap.size === 0) return;
+
+        let csvContent = "data:text/csv;charset=utf-8,Keyword,Frequency\n";
+        wordMap.forEach((freq, word) => {
+            csvContent += `${word},${freq}\n`;
+        });
+
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "keyword_frequencies.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    function resetData() {
+        wordMap.clear();
+        totalWordCount = 0;
+        document.getElementById('text-input').value = '';
+        document.getElementById('search-query').value = '';
+        document.getElementById('search-result').innerText = '';
+        document.getElementById('stat-total-words').innerText = '0';
+        document.getElementById('stat-unique-keywords').innerText = '0';
+        document.getElementById('chart-container').innerHTML = '<p style="color: var(--text-muted);">No data processed yet.</p>';
+    }
+</script>
+</body>
+</html>
